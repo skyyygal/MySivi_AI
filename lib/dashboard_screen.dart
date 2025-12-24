@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_sivi_ai/home_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -8,16 +9,21 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  @override
   int index = 0;
+  List<Widget> widgetList = [
+    HomeScreen(),
+    Text("Offers", style: TextStyle(fontSize: 40)),
+    Text('Settings', style: TextStyle(fontSize: 40)),
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(children: [Center(child: Text("DashboardScreen"))]),
-      ),
+      body: SafeArea(child: Center(child: widgetList[index])),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
+        selectedFontSize: 15,
+        unselectedFontSize: 15,
         onTap: (value) {
           setState(() {
             index = value;
