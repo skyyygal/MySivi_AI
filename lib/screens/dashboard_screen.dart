@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_sivi_ai/home_screen.dart';
+import 'package:my_sivi_ai/screens/home_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

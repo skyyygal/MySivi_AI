@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_sivi_ai/dashboard_screen.dart';
+import 'package:my_sivi_ai/screens/dashboard_screen.dart';
 
 void main() {
   runApp(const MyApp());
