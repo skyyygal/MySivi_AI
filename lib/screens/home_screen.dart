@@ -1,8 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:my_sivi_ai/models/chat_messages.dart';
 import 'package:my_sivi_ai/models/user_models.dart';
-import 'package:my_sivi_ai/screens/chat_screen.dart';
 import 'package:my_sivi_ai/services/chat_service.dart';
+import 'package:my_sivi_ai/widgets/chat_history.dart';
 import 'package:my_sivi_ai/widgets/tab_item.dart';
+import 'package:my_sivi_ai/widgets/user_list.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +20,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late TabController tabController;
   List<User> users = [];
   bool isLoadingUsers = true;
+  List<ChatHistoryItem> chatHistory = [];
+  bool isLoadingHistory = true;
+
   String? usersError;
   late final ScrollController usersScrollController;
   late final ScrollController chatHistoryScrollController;
@@ -26,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         users = fetchedUsers;
         isLoadingUsers = false;
       });
+      generateChatHistory();
     } catch (e) {
       setState(() {
         usersError = 'Failed to load users';
@@ -48,6 +56,108 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     chatHistoryScrollController = ScrollController();
   }
 
+  Future<void> generateChatHistory() async {
+    if (users.isEmpty) return;
+
+    setState(() {
+      isLoadingHistory = true;
+    });
+
+    final random = Random();
+    final senderMessages = [
+      'Hey!',
+      'How are you?',
+      'What are you up to?',
+      'Check this out!',
+      'Any updates?',
+    ];
+
+    try {
+      final apiMessages = await ChatService().fetchReceiverMessages();
+      List<ChatHistoryItem> history = [];
+
+      for (var user in users) {
+        final isSender = random.nextBool();
+
+        final lastMsg = isSender
+            ? ChatMessage(
+                id: DateTime.now().millisecondsSinceEpoch,
+                message: senderMessages[random.nextInt(senderMessages.length)],
+                senderName: 'You',
+                type: MessageType.sender,
+              )
+            : apiMessages[random.nextInt(apiMessages.length)];
+
+        final time = DateTime.now().subtract(
+          Duration(minutes: random.nextInt(60)),
+        );
+        final unreadCount = random.nextInt(5);
+
+        history.add(
+          ChatHistoryItem(
+            user: user,
+            lastMessage: lastMsg,
+            time: time,
+            unreadCount: unreadCount,
+          ),
+        );
+      }
+
+      setState(() {
+        chatHistory = history;
+        isLoadingHistory = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoadingHistory = false;
+      });
+    }
+  }
+
+  void addNewUser() {
+    final TextEditingController nameController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Add New User"),
+          content: TextField(
+            controller: nameController,
+            decoration: InputDecoration(hintText: 'Enter Full name'),
+          ),
+
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                if (name.isNotEmpty) {
+                  final newUser = User(
+                    id: DateTime.now().millisecondsSinceEpoch,
+                    fullName: name,
+                  );
+                  setState(() {
+                    users.add(newUser);
+                  });
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('User "$name" added')));
+                }
+              },
+              child: Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -56,75 +166,59 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         body: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
-              SliverAppBar(
-                floating: true,
-                snap: true,
-                elevation: 0,
-                backgroundColor: Colors.white,
-                automaticallyImplyLeading: false,
-                title: Container(
-                  height: 40,
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.grey.shade300,
-                  ),
-                  child: TabBar(
-                    controller: tabController,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    dividerColor: Colors.transparent,
-                    indicator: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
+              index == 0
+                  ? SliverAppBar(
+                      floating: true,
+                      snap: true,
+                      elevation: 0,
+                      backgroundColor: Colors.white,
+                      automaticallyImplyLeading: false,
+                      title: buildSwitcher(),
+                      // title: Container(
+                      //   height: 40,
+                      //   margin: const EdgeInsets.symmetric(horizontal: 20),
+                      //   decoration: BoxDecoration(
+                      //     borderRadius: BorderRadius.circular(10),
+                      //     color: Colors.grey.shade300,
+                      //   ),
+                      //   child: TabBar(
+                      //     controller: tabController,
+                      //     indicatorSize: TabBarIndicatorSize.tab,
+                      //     dividerColor: Colors.transparent,
+                      //     indicator: BoxDecoration(
+                      //       color: Colors.white,
+                      //       borderRadius: BorderRadius.circular(10),
+                      //     ),
+                      //     labelColor: Colors.black,
+                      //     unselectedLabelColor: Colors.black45,
+                      //     tabs: const [
+                      //       TabItem(title: "User List"),
+                      //       TabItem(title: "Chat History"),
+                      //     ],
+                      //   ),
+                      // ),
+                    )
+                  : SliverAppBar(
+                      pinned: true,
+                      floating: false,
+                      elevation: 0,
+                      backgroundColor: Colors.white,
+                      automaticallyImplyLeading: false,
+                      title: buildSwitcher(),
                     ),
-                    labelColor: Colors.black,
-                    unselectedLabelColor: Colors.black45,
-                    tabs: const [
-                      TabItem(title: "User List"),
-                      TabItem(title: "Chat History"),
-                    ],
-                  ),
-                ),
-              ),
             ];
           },
           body: TabBarView(
             controller: tabController,
             children: [
-              ListView.builder(
-                primary: true,
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  final user = users[index];
-                  return ListTile(
-                    leading: CircleAvatar(child: Text(user.initials)),
-                    title: Text(user.fullName),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChatScreen(user: user),
-                        ),
-                      );
-                    },
-                  );
-                },
+              UserListWidget(
+                users: users,
+                scrollController: usersScrollController,
               ),
-
-              ListView.builder(
-                primary: false,
-                physics: const ClampingScrollPhysics(),
-                itemCount: 15,
-                // itemCount: chatHistory.length,
-                itemBuilder: (context, index) {
-                  // final chat = chatHistory[index];
-                  return ListTile(
-                    // leading: CircleAvatar(child: Text(chat.initials)),
-                    title: Text("Hello"),
-                    // subtitle: Text(chat.lastMessage),
-                    // trailing: Text(chat.time),
-                  );
-                },
+              ChatHistoryWidget(
+                chatHistory: chatHistory,
+                users: users,
+                scrollController: chatHistoryScrollController,
               ),
             ],
           ),
@@ -133,9 +227,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         floatingActionButton: index == 0
             ? FloatingActionButton(
                 child: const Icon(Icons.add),
-                onPressed: () {},
+                onPressed: () {
+                  addNewUser();
+                },
               )
             : null,
+      ),
+    );
+  }
+
+  Widget buildSwitcher() {
+    return Container(
+      height: 40,
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.grey.shade300,
+      ),
+      child: TabBar(
+        controller: tabController,
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        indicator: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        labelColor: Colors.black,
+        unselectedLabelColor: Colors.black45,
+        tabs: const [
+          TabItem(title: "User List"),
+          TabItem(title: "Chat History"),
+        ],
       ),
     );
   }

@@ -34,4 +34,10 @@ class ChatService {
       throw Exception('Failed to load messages');
     }
   }
+
+  Future<List<ChatMessage>> fetchReceiverMessagesForUser(int userId) async {
+    final allMessages = await fetchReceiverMessages();
+
+    return allMessages.where((msg) => msg.id % 10 == userId % 10).toList();
+  }
 }
