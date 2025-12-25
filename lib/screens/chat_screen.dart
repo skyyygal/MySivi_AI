@@ -1,16 +1,19 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:my_sivi_ai/core/utils.dart';
 import 'package:my_sivi_ai/models/chat_messages.dart';
 import 'package:my_sivi_ai/models/user_models.dart';
 import 'package:my_sivi_ai/services/chat_service.dart';
 import 'package:my_sivi_ai/services/dictionary_service.dart';
+import 'package:my_sivi_ai/widgets/avatar.dart';
 import 'package:my_sivi_ai/widgets/message_text.dart';
 
 class ChatScreen extends StatefulWidget {
   final User user;
+  final String? status;
 
-  const ChatScreen({super.key, required this.user});
+  const ChatScreen({super.key, required this.user, this.status});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -30,7 +33,6 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    // fetchMessages();
     loadChatConversation();
   }
 
@@ -38,11 +40,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final random = Random();
     messages.clear();
     try {
-      // final apiMessages = await ChatService().fetchReceiverMessagesForUser(
-      //   widget.user.id,
-      // );
-
       final apiMessages = await ChatService().fetchReceiverMessages();
+      DateTime baseTime = DateTime.now().subtract(const Duration(minutes: 10));
+
       for (int i = 0; i < 5; i++) {
         messages.add(
           ChatMessage(
@@ -50,8 +50,10 @@ class _ChatScreenState extends State<ChatScreen> {
             message: senderMessages[random.nextInt(senderMessages.length)],
             senderName: 'You',
             type: MessageType.sender,
+            timestamp: baseTime.add(Duration(minutes: i * 2)),
           ),
         );
+
         final msg = apiMessages[i % apiMessages.length];
         messages.add(
           ChatMessage(
@@ -59,6 +61,7 @@ class _ChatScreenState extends State<ChatScreen> {
             message: msg.message,
             senderName: msg.senderName,
             type: MessageType.receiver,
+            timestamp: baseTime.add(Duration(minutes: i * 2 + 1)),
           ),
         );
       }
@@ -71,23 +74,27 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     }
   }
-  // Future<void> fetchMessages() async {
-  //   try {
-  //     final fetchedMessages = await ChatService().fetchReceiverMessages();
-  //     setState(() {
-  //       messages = fetchedMessages;
-  //       isLoading = false;
-  //     });
-  //   } catch (e) {
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //   }
+
+  String formatTime(DateTime time) {
+    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.user.fullName)),
+      appBar: AppBar(
+        title: ListTile(
+          leading: Avatar(gradient: indigoGradient, text: widget.user.initials),
+          title: Text(widget.user.fullName),
+          subtitle: Text(
+            widget.status ?? "Online",
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+          ),
+        ),
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -97,40 +104,62 @@ class _ChatScreenState extends State<ChatScreen> {
                 final msg = messages[index];
                 final isSender = msg.type == MessageType.sender;
 
-                return Row(
-                  mainAxisAlignment: isSender
-                      ? MainAxisAlignment.end
-                      : MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                return Column(
+                  crossAxisAlignment: isSender
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
                   children: [
-                    if (!isSender) CircleAvatar(child: Text(msg.initials)),
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 6,
+                    Row(
+                      mainAxisAlignment: isSender
+                          ? MainAxisAlignment.end
+                          : MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (!isSender)
+                          Avatar(text: msg.initials, gradient: indigoGradient),
+
+                        Container(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSender
+                                ? Colors.indigoAccent
+                                : Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: MessageText(
+                            message: msg.message,
+                            onWordLongPress: (word) {
+                              showWordMeaningBottomSheet(context, word);
+                            },
+                          ),
+                        ),
+
+                        if (isSender)
+                          Avatar(text: msg.initials, gradient: pinkGradient),
+                        const SizedBox(height: 4),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: isSender ? 0 : 60,
+                        right: isSender ? 60 : 0,
                       ),
-                      padding: const EdgeInsets.all(12),
-                      constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.7,
+                      child: Text(
+                        formatTime(msg.timestamp),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: isSender
-                            ? Colors.indigoAccent
-                            : Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: MessageText(
-                        message: msg.message,
-                        onWordLongPress: (word) {
-                          showWordMeaningBottomSheet(context, word);
-                        },
-                      ),
-                      // child: Text(
-                      //   msg.message,
-                      //   style: TextStyle(
-                      //     color: isSender ? Colors.white : Colors.black,
-                      //   ),
-                      // ),
                     ),
                   ],
                 );

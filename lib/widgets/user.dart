@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:my_sivi_ai/core/utils.dart';
 import 'package:my_sivi_ai/models/user_models.dart';
+import 'package:my_sivi_ai/screens/chat_screen.dart';
+import 'package:my_sivi_ai/widgets/avatar.dart';
 
 class UserListWidget extends StatelessWidget {
   final List<User> users;
@@ -32,7 +35,8 @@ class UserListWidget extends StatelessWidget {
         return ListTile(
           leading: Stack(
             children: [
-              CircleAvatar(child: Text(user.initials)),
+              Avatar(text: user.initials, gradient: indigoGradient),
+
               Positioned(
                 bottom: 0,
                 right: 0,
@@ -52,33 +56,30 @@ class UserListWidget extends StatelessWidget {
             ],
           ),
 
-          title: Text(user.fullName),
+          title: Text(
+            user.fullName,
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChatScreen(
+                  user: user,
+                  status: isOnline
+                      ? "Online"
+                      : "Last seen ${getLastSeenTime(lastSeen)}",
+                ),
+              ),
+            );
+          },
 
           subtitle: Text(
             isOnline ? "Online" : "Last seen ${getLastSeenTime(lastSeen)}",
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
           ),
         );
       },
     );
   }
 }
-   // ListView.builder(
-              //   primary: true,
-              //   itemCount: users.length,
-              //   itemBuilder: (context, index) {
-              //     final user = users[index];
-              //     return ListTile(
-              //       leading: CircleAvatar(child: Text(user.initials)),
-              //       title: Text(user.fullName),
-
-              //       onTap: () {
-              //         Navigator.push(
-              //           context,
-              //           MaterialPageRoute(
-              //             builder: (_) => ChatScreen(user: user),
-              //           ),
-              //         );
-              //       },
-              //     );
-              //   },
-              // ),

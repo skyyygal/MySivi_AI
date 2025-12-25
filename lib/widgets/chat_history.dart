@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:my_sivi_ai/core/utils.dart';
 import 'package:my_sivi_ai/models/user_models.dart';
 import 'package:my_sivi_ai/screens/chat_screen.dart';
+import 'package:my_sivi_ai/widgets/avatar.dart';
 
 class ChatHistoryWidget extends StatelessWidget {
   final List<ChatHistoryItem> chatHistory;
@@ -25,13 +27,13 @@ class ChatHistoryWidget extends StatelessWidget {
             '${DateTime.now().difference(item.time).inMinutes} mins ago';
 
         return ListTile(
-          leading: CircleAvatar(
-            child: Text(
-              item.user.fullName.isNotEmpty
-                  ? item.user.fullName[0].toUpperCase()
-                  : '?',
-            ),
+          leading: Avatar(
+            gradient: greenGradient,
+            text: item.user.fullName.isNotEmpty
+                ? item.user.fullName[0].toUpperCase()
+                : '',
           ),
+
           title: Text(item.user.fullName),
           subtitle: Text(
             item.lastMessage.message,
@@ -45,6 +47,7 @@ class ChatHistoryWidget extends StatelessWidget {
           },
           trailing: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 '${DateTime.now().difference(item.time).inMinutes} mins ago',
