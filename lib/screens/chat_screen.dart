@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:my_sivi_ai/models/chat_messages.dart';
 import 'package:my_sivi_ai/models/user_models.dart';
 import 'package:my_sivi_ai/services/chat_service.dart';
+import 'package:my_sivi_ai/services/dictionary_service.dart';
+import 'package:my_sivi_ai/widgets/message_text.dart';
 
 class ChatScreen extends StatefulWidget {
   final User user;
@@ -112,15 +114,23 @@ class _ChatScreenState extends State<ChatScreen> {
                         maxWidth: MediaQuery.of(context).size.width * 0.7,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
+                        color: isSender
+                            ? Colors.indigoAccent
+                            : Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        msg.message,
-                        style: TextStyle(
-                          color: isSender ? Colors.white : Colors.black,
-                        ),
+                      child: MessageText(
+                        message: msg.message,
+                        onWordLongPress: (word) {
+                          showWordMeaningBottomSheet(context, word);
+                        },
                       ),
+                      // child: Text(
+                      //   msg.message,
+                      //   style: TextStyle(
+                      //     color: isSender ? Colors.white : Colors.black,
+                      //   ),
+                      // ),
                     ),
                   ],
                 );
@@ -128,4 +138,45 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
     );
   }
+}
+
+void showWordMeaningBottomSheet(BuildContext context, String word) {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (_) {
+      return FutureBuilder<String>(
+        future: fetchMeaning(word),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  word,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(snapshot.data ?? 'No meaning found'),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
 }

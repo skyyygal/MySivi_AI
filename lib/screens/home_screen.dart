@@ -174,29 +174,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       backgroundColor: Colors.white,
                       automaticallyImplyLeading: false,
                       title: buildSwitcher(),
-                      // title: Container(
-                      //   height: 40,
-                      //   margin: const EdgeInsets.symmetric(horizontal: 20),
-                      //   decoration: BoxDecoration(
-                      //     borderRadius: BorderRadius.circular(10),
-                      //     color: Colors.grey.shade300,
-                      //   ),
-                      //   child: TabBar(
-                      //     controller: tabController,
-                      //     indicatorSize: TabBarIndicatorSize.tab,
-                      //     dividerColor: Colors.transparent,
-                      //     indicator: BoxDecoration(
-                      //       color: Colors.white,
-                      //       borderRadius: BorderRadius.circular(10),
-                      //     ),
-                      //     labelColor: Colors.black,
-                      //     unselectedLabelColor: Colors.black45,
-                      //     tabs: const [
-                      //       TabItem(title: "User List"),
-                      //       TabItem(title: "Chat History"),
-                      //     ],
-                      //   ),
-                      // ),
                     )
                   : SliverAppBar(
                       pinned: true,
