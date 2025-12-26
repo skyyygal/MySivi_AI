@@ -17,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int index = 0;
-  late TabController tabController;
+  late TabController _tabController;
   List<User> users = [];
   bool isLoadingUsers = true;
   List<ChatHistoryItem> chatHistory = [];
@@ -46,10 +46,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     fetchUsers();
-    tabController = TabController(length: 2, vsync: this);
-    tabController.addListener(() {
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
       setState(() {
-        index = tabController.index;
+        index = _tabController.index;
       });
     });
     usersScrollController = ScrollController();
@@ -164,58 +164,57 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        body: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              index == 0
-                  ? SliverAppBar(
-                      floating: true,
-                      snap: true,
-                      elevation: 0,
-                      backgroundColor: Colors.white,
-                      automaticallyImplyLeading: false,
-                      title: buildSwitcher(),
-                    )
-                  : SliverAppBar(
-                      // pinned: true,
-                      // floating: false,
-                      elevation: 0,
-                      backgroundColor: Colors.white,
-                      automaticallyImplyLeading: false,
-                      title: buildSwitcher(),
-                    ),
-            ];
-          },
-          body: Container(
-            color: Colors.white,
-            child: TabBarView(
-              controller: tabController,
+      child: PageStorage(
+        bucket: bucket,
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                index == 0
+                    ? SliverAppBar(
+                        floating: true,
+                        pinned: false,
+                        snap: true,
+                        backgroundColor: Colors.white,
+                        collapsedHeight: kToolbarHeight,
+                        expandedHeight: kToolbarHeight,
+                        flexibleSpace: SafeArea(
+                          child: Center(child: buildSwitcher()),
+                        ),
+                      )
+                    : SliverAppBar(
+                        pinned: true,
+                        floating: false,
+                        backgroundColor: Colors.white,
+                        surfaceTintColor: Colors.white,
+                        shadowColor: Colors.white,
+                        flexibleSpace: SafeArea(
+                          child: Center(child: buildSwitcher()),
+                        ),
+                      ),
+              ];
+            },
+            body: TabBarView(
+              controller: _tabController,
               children: [
-                UserListWidget(
-                  users: users,
-                  scrollController: usersScrollController,
-                ),
-                ChatHistoryWidget(
-                  chatHistory: chatHistory,
-                  users: users,
-                  scrollController: chatHistoryScrollController,
-                ),
+                UserListWidget(users: users),
+                ChatHistoryWidget(chatHistory: chatHistory),
               ],
             ),
           ),
-        ),
 
-        floatingActionButton: index == 0
-            ? FloatingActionButton(
-                shape: CircleBorder(),
-                backgroundColor: Colors.indigoAccent,
-                child: const Icon(Icons.add, color: Colors.white),
-                onPressed: () {
-                  addNewUser();
-                },
-              )
-            : null,
+          floatingActionButton: index == 0
+              ? FloatingActionButton(
+                  shape: CircleBorder(),
+                  backgroundColor: Colors.indigoAccent,
+                  child: const Icon(Icons.add, color: Colors.white),
+                  onPressed: () {
+                    addNewUser();
+                  },
+                )
+              : null,
+        ),
       ),
     );
   }
@@ -233,7 +232,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Padding(
           padding: const EdgeInsets.all(2.0),
           child: TabBar(
-            controller: tabController,
+            isScrollable: false,
+            controller: _tabController,
             indicatorSize: TabBarIndicatorSize.tab,
             dividerColor: Colors.transparent,
             indicator: BoxDecoration(

@@ -4,9 +4,11 @@ import 'package:my_sivi_ai/models/user_models.dart';
 import 'package:my_sivi_ai/screens/chat_screen.dart';
 import 'package:my_sivi_ai/widgets/avatar.dart';
 
+final bucket = PageStorageBucket();
+
 class UserListWidget extends StatelessWidget {
   final List<User> users;
-  final ScrollController scrollController;
+  // final ScrollController scrollController;
   String getLastSeenTime(DateTime lastSeen) {
     final difference = DateTime.now().difference(lastSeen);
     if (difference.inMinutes < 1) return 'Online';
@@ -18,68 +20,73 @@ class UserListWidget extends StatelessWidget {
   const UserListWidget({
     super.key,
     required this.users,
-    required this.scrollController,
+    // required this.scrollController,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      controller: scrollController,
-      itemCount: users.length,
-      itemBuilder: (context, index) {
-        final user = users[index];
+    return PageStorage(
+      bucket: bucket,
+      child: ListView.builder(
+        key: PageStorageKey(0),
+        itemCount: users.length,
+        itemBuilder: (context, index) {
+          final user = users[index];
 
-        final lastSeen = DateTime.now().subtract(Duration(minutes: index * 5));
+          final lastSeen = DateTime.now().subtract(
+            Duration(minutes: index * 5),
+          );
 
-        final isOnline = index % 2 == 0;
-        return ListTile(
-          leading: Stack(
-            children: [
-              Avatar(text: user.initials, gradient: indigoGradient),
+          final isOnline = index % 2 == 0;
+          return ListTile(
+            leading: Stack(
+              children: [
+                Avatar(text: user.initials, gradient: indigoGradient),
 
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: isOnline ? Colors.green : null,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: isOnline ? 2 : 0,
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: isOnline ? Colors.green : null,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: isOnline ? 2 : 0,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
-          title: Text(
-            user.fullName,
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ChatScreen(
-                  user: user,
-                  status: isOnline
-                      ? "Online"
-                      : "Last seen ${getLastSeenTime(lastSeen)}",
+            title: Text(
+              user.fullName,
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(
+                    user: user,
+                    status: isOnline
+                        ? "Online"
+                        : "Last seen ${getLastSeenTime(lastSeen)}",
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
 
-          subtitle: Text(
-            isOnline ? "Online" : "Last seen ${getLastSeenTime(lastSeen)}",
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-          ),
-        );
-      },
+            subtitle: Text(
+              isOnline ? "Online" : "Last seen ${getLastSeenTime(lastSeen)}",
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+            ),
+          );
+        },
+      ),
     );
   }
 }

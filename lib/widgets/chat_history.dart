@@ -6,25 +6,28 @@ import 'package:my_sivi_ai/widgets/avatar.dart';
 
 class ChatHistoryWidget extends StatelessWidget {
   final List<ChatHistoryItem> chatHistory;
-  final List<User> users;
-  final ScrollController scrollController;
+  // final String keyName;
+  // // final List<User> users;
+  // final ScrollController scrollController;
 
   const ChatHistoryWidget({
     super.key,
     required this.chatHistory,
-    required this.users,
-    required this.scrollController,
+
+    // required this.users,
+    // required this.scrollController,
+    // required this.keyName,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      controller: scrollController,
+      // key: PageStorageKey(keyName),
+      // controller: scrollController,
       itemCount: chatHistory.length,
       itemBuilder: (context, index) {
         final item = chatHistory[index];
-        final timeText =
-            '${DateTime.now().difference(item.time).inMinutes} mins ago';
+        final minsAgo = DateTime.now().difference(item.time).inMinutes;
 
         return ListTile(
           leading: Avatar(
@@ -50,7 +53,7 @@ class ChatHistoryWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${DateTime.now().difference(item.time).inMinutes} mins ago',
+                '$minsAgo mins ago',
                 style: const TextStyle(fontSize: 12, color: Colors.black54),
               ),
               if (item.unreadCount > 0)

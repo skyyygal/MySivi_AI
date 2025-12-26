@@ -5,7 +5,7 @@ import 'package:my_sivi_ai/models/chat_messages.dart';
 import 'package:my_sivi_ai/models/user_models.dart';
 
 class ChatService {
-  static const url = 'https://dummyjson.com/comments?limit=12';
+  static const url = 'https://dummyjson.com/comments?limit=10';
 
   Future<List<User>> fetchUsers() async {
     final response = await http.get(Uri.parse(url));
