@@ -6,27 +6,27 @@ import 'package:my_sivi_ai/widgets/avatar.dart';
 
 class ChatHistoryWidget extends StatelessWidget {
   final List<ChatHistoryItem> chatHistory;
-  final ScrollController controller;
+  // final ScrollController controller;
 
   const ChatHistoryWidget({
     super.key,
     required this.chatHistory,
-    required this.controller,
+    // required this.controller,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ListView.builder(
-        key: key,
-        controller: controller,
-        itemCount: chatHistory.length,
-        itemBuilder: (context, index) {
-          final item = chatHistory[index];
-          final minsAgo = DateTime.now().difference(item.time).inMinutes;
+    return ListView.builder(
+      // key: key,
+      key: PageStorageKey("chatHistory"),
+      itemCount: chatHistory.length,
+      itemBuilder: (context, index) {
+        final item = chatHistory[index];
+        final minsAgo = DateTime.now().difference(item.time).inMinutes;
 
-          return ListTile(
+        return Padding(
+          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+          child: ListTile(
             leading: Avatar(
               gradient: greenGradient,
               text: item.user.fullName.isNotEmpty
@@ -71,9 +71,9 @@ class ChatHistoryWidget extends StatelessWidget {
                   ),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

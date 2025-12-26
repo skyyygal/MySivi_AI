@@ -5,7 +5,6 @@ import 'package:my_sivi_ai/models/chat_messages.dart';
 import 'package:my_sivi_ai/models/user_models.dart';
 import 'package:my_sivi_ai/services/chat_service.dart';
 import 'package:my_sivi_ai/widgets/chat_history.dart';
-import 'package:my_sivi_ai/widgets/tab_item.dart';
 import 'package:my_sivi_ai/widgets/user.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,7 +14,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int index = 0;
   late TabController _tabController;
 
@@ -34,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
       setState(() {
         index = _tabController.index;
       });
@@ -43,6 +44,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     chatHistoryScrollController = ScrollController();
 
     fetchUsers();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _tabController.dispose();
   }
 
   Future<void> fetchUsers() async {
@@ -165,6 +172,111 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        floatingActionButton: index == 0
+            ? FloatingActionButton(
+                shape: CircleBorder(),
+                backgroundColor: Colors.indigoAccent,
+                onPressed: addNewUser,
+                child: const Icon(Icons.add, color: Colors.white),
+              )
+            : null,
+        body: Column(
+          children: [
+            // Container(
+            //   height: 40,
+            //   margin: const EdgeInsets.symmetric(horizontal: 60),
+            //   decoration: BoxDecoration(
+            //     borderRadius: BorderRadius.circular(30),
+            //     color: Colors.grey.shade200,
+            //   ),
+            //   child: TabBar(
+            //     controller: _tabController,
+            //     indicatorSize: TabBarIndicatorSize.tab,
+            //     dividerColor: Colors.transparent,
+
+            //     labelColor: Colors.black,
+            //     unselectedLabelColor: Colors.black45,
+            //     padding: EdgeInsets.all(2),
+            //     indicator: BoxDecoration(
+            //       color: Colors.white,
+            //       borderRadius: BorderRadius.all(Radius.circular(20)),
+            //     ),
+            //     tabs: const [
+            //       Tab(text: "Users"),
+            //       Tab(text: "Chat History"),
+            //     ],
+            //   ),
+            // ),
+
+            // const SizedBox(height: 10),
+            Expanded(
+              child: NestedScrollView(
+                floatHeaderSlivers: true,
+                headerSliverBuilder: (context, innerBoxIsScrolled) {
+                  return [
+                    SliverAppBar(
+                      pinned: _tabController.index == 1,
+                      floating: _tabController.index == 0,
+                      snap: _tabController.index == 0,
+                      automaticallyImplyLeading: false,
+
+                      backgroundColor: Colors.white,
+                      surfaceTintColor: Colors.white,
+                      shadowColor: index == 1 ? Colors.white : null,
+                      toolbarHeight: 40,
+                      title: buildTabBar(),
+                    ),
+                  ];
+                },
+                body: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Users tab content
+                    UserListWidget(users: users),
+                    // ChatHistory tab content
+                    ChatHistoryWidget(chatHistory: chatHistory),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildTabBar() {
+    return Container(
+      height: 40,
+      margin: const EdgeInsets.symmetric(horizontal: 60),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        color: Colors.grey.shade200,
+      ),
+      child: TabBar(
+        controller: _tabController,
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+
+        labelColor: Colors.black,
+        unselectedLabelColor: Colors.black45,
+        padding: EdgeInsets.all(2),
+        indicator: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
+        tabs: const [
+          Tab(text: "Users"),
+          Tab(text: "Chat History"),
+        ],
+      ),
+    );
+  }
+}
+
+   /*  return SafeArea(
       child: DefaultTabController(
         length: 2,
         child: Scaffold(
@@ -189,16 +301,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             body: TabBarView(
               controller: _tabController,
               children: [
-                UserListWidget(
-                  users: users,
-                  controller: usersScrollController,
-                  key: PageStorageKey("userList"),
-                ),
-                ChatHistoryWidget(
-                  key: PageStorageKey("chatHistory"),
-                  chatHistory: chatHistory,
-                  controller: chatHistoryScrollController,
-                ),
+                UserListWidget(users: users),
+                ChatHistoryWidget(chatHistory: chatHistory),
               ],
             ),
           ),
@@ -228,7 +332,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Padding(
           padding: const EdgeInsets.all(2.0),
           child: TabBar(
-            isScrollable: false,
+            // isScrollable: false,
             controller: _tabController,
             indicatorSize: TabBarIndicatorSize.tab,
             dividerColor: Colors.transparent,
@@ -246,8 +350,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
       ),
     );
-  }
-}
+  } */
+// }
 
 
 

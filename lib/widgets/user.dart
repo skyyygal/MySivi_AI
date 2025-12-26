@@ -8,7 +8,7 @@ final bucket = PageStorageBucket();
 
 class UserListWidget extends StatelessWidget {
   final List<User> users;
-  final ScrollController controller;
+  // final ScrollController controller;
   String getLastSeenTime(DateTime lastSeen) {
     final difference = DateTime.now().difference(lastSeen);
     if (difference.inMinutes < 1) return 'Online';
@@ -20,14 +20,14 @@ class UserListWidget extends StatelessWidget {
   const UserListWidget({
     super.key,
     required this.users,
-    required this.controller,
+    // required this.controller,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      key: key,
-      controller: controller,
+      // key: key,
+      key: PageStorageKey("userList"),
       itemCount: users.length,
       itemBuilder: (context, index) {
         final user = users[index];
