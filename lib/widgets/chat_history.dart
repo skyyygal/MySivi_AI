@@ -6,13 +6,19 @@ import 'package:my_sivi_ai/widgets/avatar.dart';
 
 class ChatHistoryWidget extends StatelessWidget {
   final List<ChatHistoryItem> chatHistory;
+  final ScrollController controller;
 
-  const ChatHistoryWidget({super.key, required this.chatHistory});
+  const ChatHistoryWidget({
+    super.key,
+    required this.chatHistory,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      key: PageStorageKey('chat_history_tab'),
+      key: PageStorageKey(1),
+      controller: controller,
       itemCount: chatHistory.length,
       itemBuilder: (context, index) {
         final item = chatHistory[index];
