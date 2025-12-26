@@ -8,7 +8,6 @@ final bucket = PageStorageBucket();
 
 class UserListWidget extends StatelessWidget {
   final List<User> users;
-  // final ScrollController controller;
   String getLastSeenTime(DateTime lastSeen) {
     final difference = DateTime.now().difference(lastSeen);
     if (difference.inMinutes < 1) return 'Online';
@@ -51,10 +50,9 @@ class UserListWidget extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isOnline ? Colors.green : null,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: isOnline ? 2 : 0,
-                      ),
+                      border: isOnline
+                          ? Border.all(color: Colors.white, width: 2)
+                          : null,
                     ),
                   ),
                 ),

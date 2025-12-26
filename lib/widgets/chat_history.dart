@@ -13,6 +13,22 @@ class ChatHistoryWidget extends StatelessWidget {
     required this.chatHistory,
     // required this.controller,
   });
+  String formatChatTime(DateTime time) {
+    final now = DateTime.now();
+    final diff = now.difference(time);
+
+    if (diff.inMinutes < 1) {
+      return 'Now';
+    } else if (diff.inMinutes < 60) {
+      return '${diff.inMinutes} mins ago';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours} hrs ago';
+    } else if (diff.inDays == 1) {
+      return 'Yesterday';
+    } else {
+      return '${diff.inDays} days ago';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +38,6 @@ class ChatHistoryWidget extends StatelessWidget {
       itemCount: chatHistory.length,
       itemBuilder: (context, index) {
         final item = chatHistory[index];
-        final minsAgo = DateTime.now().difference(item.time).inMinutes;
 
         return Padding(
           padding: const EdgeInsets.only(left: 8.0, right: 8.0),
@@ -34,10 +49,14 @@ class ChatHistoryWidget extends StatelessWidget {
                   : '',
             ),
 
-            title: Text(item.user.fullName),
+            title: Text(
+              item.user.fullName,
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
             subtitle: Text(
               item.lastMessage.message,
               overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
             ),
             onTap: () {
               Navigator.push(
@@ -50,10 +69,10 @@ class ChatHistoryWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '$minsAgo mins ago',
+                  formatChatTime(item.time),
                   style: const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
-                if (item.unreadCount > 0)
+                if (item.unreadCount > 2)
                   Container(
                     margin: const EdgeInsets.only(left: 6),
                     padding: const EdgeInsets.symmetric(
