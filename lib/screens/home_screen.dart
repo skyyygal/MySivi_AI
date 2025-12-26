@@ -162,10 +162,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: PageStorage(
-        bucket: bucket,
+    return SafeArea(
+      child: DefaultTabController(
+        length: 2,
         child: Scaffold(
           backgroundColor: Colors.white,
           body: NestedScrollView(
@@ -177,9 +176,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         pinned: false,
                         snap: true,
                         backgroundColor: Colors.white,
-                        collapsedHeight: kToolbarHeight,
-                        expandedHeight: kToolbarHeight,
+
+                        // collapsedHeight:
+                        //     kToolbarHeight + MediaQuery.of(context).padding.top,
+                        // expandedHeight: kToolbarHeight,
+                        surfaceTintColor: Colors.white,
+                        shadowColor: Colors.white,
+                        // title: SafeArea(
+                        //   child: PreferredSize(
+                        //     preferredSize: Size.fromHeight(100),
+                        //     child: buildSwitcher(),
+                        //   ),
+                        // ),
                         flexibleSpace: SafeArea(
+                          bottom: false,
                           child: Center(child: buildSwitcher()),
                         ),
                       )
@@ -195,12 +205,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
               ];
             },
-            body: TabBarView(
-              controller: _tabController,
-              children: [
-                UserListWidget(users: users),
-                ChatHistoryWidget(chatHistory: chatHistory),
-              ],
+            body: MediaQuery.removePadding(
+              context: context,
+
+              removeTop: true,
+              removeBottom: true,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  UserListWidget(users: users),
+                  ChatHistoryWidget(chatHistory: chatHistory),
+                ],
+              ),
             ),
           ),
 

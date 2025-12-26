@@ -10,7 +10,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int index = 0;
-  int innerIndex = 0;
+  // int innerIndex = 0;
   List<Widget> widgetList = [
     HomeScreen(),
     Text("Offers", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
@@ -19,11 +19,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
     ),
   ];
+  final List<GlobalKey<NavigatorState>> navigatorKeys = [
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+  ];
+  Widget buildTab(int tabIndex, Widget child) {
+    return Navigator(
+      key: navigatorKeys[tabIndex],
+      onGenerateRoute: (settings) {
+        return MaterialPageRoute(builder: (_) => child);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(child: Center(child: widgetList[index])),
+      body: IndexedStack(
+        index: index,
+        children: [
+          buildTab(0, const HomeScreen()),
+          buildTab(1, const Center(child: Text("Offers"))),
+          buildTab(2, const Center(child: Text("Settings"))),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
