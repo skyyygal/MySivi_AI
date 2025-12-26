@@ -22,12 +22,20 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   List<ChatMessage> messages = [];
   bool isLoading = true;
+
   final List<String> senderMessages = [
-    'Hey!',
-    'How are you?',
-    'What are you up to?',
-    'Tell me something interesting',
-    'Any updates',
+    'The project is on track, all tasks are progressing.',
+    'Have you reviewed the latest report?',
+    'Please update me on the project status.',
+    'Can we schedule a meeting for tomorrow?',
+    'Thank you.',
+    'I will follow up on this by end of day.',
+    'Sure',
+
+    ' tomorrow works fine for a meeting.',
+    'I will send you the requested documents shortly.',
+    'You’re welcome!',
+    ' Let me know if you need anything else.',
   ];
 
   @override
@@ -39,32 +47,41 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> loadChatConversation() async {
     final random = Random();
     messages.clear();
+
     try {
       final apiMessages = await ChatService().fetchReceiverMessages();
       DateTime baseTime = DateTime.now().subtract(const Duration(minutes: 10));
 
-      for (int i = 0; i < 5; i++) {
+      final firstReceiverMsg = apiMessages[0];
+      messages.add(
+        ChatMessage(
+          id: firstReceiverMsg.id,
+          message: firstReceiverMsg.message,
+          senderName: firstReceiverMsg.senderName,
+          type: MessageType.receiver,
+          timestamp: baseTime,
+        ),
+      );
+
+      for (int i = 1; i < 5; i++) {
         messages.add(
-          ChatMessage(
-            id: DateTime.now().millisecondsSinceEpoch + i,
+          ChatMessage.sender(
             message: senderMessages[random.nextInt(senderMessages.length)],
-            senderName: 'You',
-            type: MessageType.sender,
-            timestamp: baseTime.add(Duration(minutes: i * 2)),
           ),
         );
 
-        final msg = apiMessages[i % apiMessages.length];
+        final receiverMsg = apiMessages[i % apiMessages.length];
         messages.add(
           ChatMessage(
-            id: msg.id,
-            message: msg.message,
-            senderName: msg.senderName,
+            id: receiverMsg.id,
+            message: receiverMsg.message,
+            senderName: receiverMsg.senderName,
             type: MessageType.receiver,
-            timestamp: baseTime.add(Duration(minutes: i * 2 + 1)),
+            timestamp: baseTime.add(Duration(minutes: i * 2)),
           ),
         );
       }
+
       setState(() {
         isLoading = false;
       });
@@ -86,12 +103,20 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: ListTile(
-          leading: Avatar(gradient: indigoGradient, text: widget.user.initials),
-          title: Text(widget.user.fullName),
-          subtitle: Text(
-            widget.status ?? "Online",
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        title: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ListTile(
+            leading: Avatar(
+              gradient: indigoGradient,
+              text: widget.user.initials,
+            ),
+            title: Text(widget.user.fullName),
+            subtitle: Text(
+              widget.status ?? "Online",
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+            ),
           ),
         ),
       ),
@@ -104,64 +129,72 @@ class _ChatScreenState extends State<ChatScreen> {
                 final msg = messages[index];
                 final isSender = msg.type == MessageType.sender;
 
-                return Column(
-                  crossAxisAlignment: isSender
-                      ? CrossAxisAlignment.end
-                      : CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: isSender
-                          ? MainAxisAlignment.end
-                          : MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (!isSender)
-                          Avatar(text: msg.initials, gradient: indigoGradient),
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                  child: Column(
+                    crossAxisAlignment: isSender
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: isSender
+                            ? MainAxisAlignment.end
+                            : MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (!isSender)
+                            Avatar(
+                              text: msg.initials,
+                              gradient: indigoGradient,
+                            ),
 
-                        Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            constraints: BoxConstraints(
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.55,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSender
+                                  ? Colors.indigoAccent
+                                  : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: MessageText(
+                              message: msg.message,
+                              onWordLongPress: (word) {
+                                showWordMeaningBottomSheet(context, word);
+                              },
+                              isSender: isSender,
+                            ),
                           ),
-                          padding: const EdgeInsets.all(12),
-                          constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSender
-                                ? Colors.indigoAccent
-                                : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: MessageText(
-                            message: msg.message,
-                            onWordLongPress: (word) {
-                              showWordMeaningBottomSheet(context, word);
-                            },
+
+                          if (isSender)
+                            Avatar(text: msg.initials, gradient: pinkGradient),
+                          const SizedBox(height: 4),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: isSender ? 0 : 60,
+                          right: isSender ? 60 : 0,
+                        ),
+                        child: Text(
+                          formatTime(msg.timestamp),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade600,
                           ),
                         ),
-
-                        if (isSender)
-                          Avatar(text: msg.initials, gradient: pinkGradient),
-                        const SizedBox(height: 4),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: isSender ? 0 : 60,
-                        right: isSender ? 60 : 0,
                       ),
-                      child: Text(
-                        formatTime(msg.timestamp),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               },
             ),

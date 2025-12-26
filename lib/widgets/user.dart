@@ -25,22 +25,19 @@ class UserListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PageStorage(
-      bucket: bucket,
+    return ListView.builder(
+      key: key,
+      controller: controller,
+      itemCount: users.length,
+      itemBuilder: (context, index) {
+        final user = users[index];
 
-      child: ListView.builder(
-        key: PageStorageKey(0),
-        // controller: controller,
-        itemCount: users.length,
-        itemBuilder: (context, index) {
-          final user = users[index];
+        final lastSeen = DateTime.now().subtract(Duration(minutes: index * 5));
 
-          final lastSeen = DateTime.now().subtract(
-            Duration(minutes: index * 5),
-          );
-
-          final isOnline = index % 2 == 0;
-          return ListTile(
+        final isOnline = index % 2 == 0;
+        return Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: ListTile(
             leading: Stack(
               children: [
                 Avatar(text: user.initials, gradient: indigoGradient),
@@ -86,9 +83,9 @@ class UserListWidget extends StatelessWidget {
               isOnline ? "Online" : "Last seen ${getLastSeenTime(lastSeen)}",
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
