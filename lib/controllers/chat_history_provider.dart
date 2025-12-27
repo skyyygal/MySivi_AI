@@ -17,7 +17,7 @@ class ChatHistoryController extends StateNotifier<List<ChatHistoryItem>> {
 
   Future<void> generateChatHistory(List<User> users) async {
     final apiMessages = await ChatService().fetchReceiverMessages();
-    final random = Random();
+    // final random = Random();
     final senderMessages = [
       'I know what this is!',
       'Lets do it',
@@ -26,12 +26,18 @@ class ChatHistoryController extends StateNotifier<List<ChatHistoryItem>> {
       'Any updates?',
       'Okay, I\'ll wait for this',
     ];
-    final shuffledUsers = users.toList()..shuffle();
-    final unreadUsers = shuffledUsers.take(min(4, users.length)).toList();
+    final random = Random();
+    final userCount = users.length;
+    final unreadIndices = <int>{};
 
-    state = users.map((user) {
-      final isSender = random.nextBool();
-      final lastMsg = isSender
+    while (unreadIndices.length < min(6, userCount)) {
+      unreadIndices.add(random.nextInt(userCount));
+    }
+
+    state = List.generate(userCount, (index) {
+      final user = users[index];
+
+      final lastMsg = random.nextBool()
           ? ChatMessage(
               id: DateTime.now().millisecondsSinceEpoch,
               message: senderMessages[random.nextInt(senderMessages.length)],
@@ -52,9 +58,10 @@ class ChatHistoryController extends StateNotifier<List<ChatHistoryItem>> {
         time = now.subtract(Duration(days: 1, hours: random.nextInt(24)));
       }
 
-      final unreadCount = unreadUsers.contains(user)
-          ? random.nextInt(3) + 1
-          : 0;
+      int unreadCount = 1;
+      if (unreadIndices.contains(index)) {
+        unreadCount = [1, 2, 3][random.nextInt(5)];
+      }
 
       return ChatHistoryItem(
         user: user,
@@ -62,7 +69,7 @@ class ChatHistoryController extends StateNotifier<List<ChatHistoryItem>> {
         time: time,
         unreadCount: unreadCount,
       );
-    }).toList();
+    });
   }
 }
 

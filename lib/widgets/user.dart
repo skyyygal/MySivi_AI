@@ -13,6 +13,7 @@ class UserListWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final users = ref.watch(usersProvider);
     return ListView.builder(
+      // primary: false,
       key: PageStorageKey("userList"),
       itemCount: users.length,
       itemBuilder: (context, index) {

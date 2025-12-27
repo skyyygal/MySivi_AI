@@ -15,6 +15,7 @@ class ChatHistoryWidget extends ConsumerWidget {
 
     return PrimaryScrollController(
       controller: ScrollController(),
+
       child: ListView.builder(
         key: PageStorageKey("chatHistory"),
         itemCount: chatHistory.length,
