@@ -65,7 +65,7 @@ class UserListWidget extends ConsumerWidget {
             },
 
             subtitle: Text(
-              isOnline ? "Online" : "Last seen ${getLastSeenTime(lastSeen)}",
+              isOnline ? "Online" : getLastSeenTime(lastSeen),
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
             ),
           ),

@@ -26,6 +26,8 @@ class ChatHistoryController extends StateNotifier<List<ChatHistoryItem>> {
       'Any updates?',
       'Okay, I\'ll wait for this',
     ];
+    final shuffledUsers = users.toList()..shuffle();
+    final unreadUsers = shuffledUsers.take(min(4, users.length)).toList();
 
     state = users.map((user) {
       final isSender = random.nextBool();
@@ -39,11 +41,26 @@ class ChatHistoryController extends StateNotifier<List<ChatHistoryItem>> {
             )
           : apiMessages[random.nextInt(apiMessages.length)];
 
+      final now = DateTime.now();
+      final timeType = random.nextInt(3);
+      DateTime time;
+      if (timeType == 0) {
+        time = now.subtract(Duration(minutes: random.nextInt(59) + 1));
+      } else if (timeType == 1) {
+        time = now.subtract(Duration(hours: random.nextInt(12) + 1));
+      } else {
+        time = now.subtract(Duration(days: 1, hours: random.nextInt(24)));
+      }
+
+      final unreadCount = unreadUsers.contains(user)
+          ? random.nextInt(3) + 1
+          : 0;
+
       return ChatHistoryItem(
         user: user,
         lastMessage: lastMsg,
-        time: DateTime.now().subtract(Duration(minutes: random.nextInt(60))),
-        unreadCount: random.nextInt(4),
+        time: time,
+        unreadCount: unreadCount,
       );
     }).toList();
   }

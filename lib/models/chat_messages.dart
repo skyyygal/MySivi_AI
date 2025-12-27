@@ -15,6 +15,22 @@ class ChatMessage {
     required this.timestamp,
   });
 
+  ChatMessage copyWith({
+    int? id,
+    String? message,
+    String? senderName,
+    MessageType? type,
+    DateTime? timestamp,
+  }) {
+    return ChatMessage(
+      id: id ?? this.id,
+      message: message ?? this.message,
+      senderName: senderName ?? this.senderName,
+      type: type ?? this.type,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
+
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
       id: json['id'] ?? 0,
@@ -37,6 +53,7 @@ class ChatMessage {
     );
   }
 
+  /// Get initials for avatar
   String get initials {
     if (type == MessageType.sender) return 'Y';
     if (senderName.isEmpty || senderName == 'Receiver') return 'R';

@@ -29,34 +29,29 @@ class ChatController extends StateNotifier<List<ChatMessage>> {
       final apiMessages = await ChatService().fetchReceiverMessages();
       DateTime baseTime = DateTime.now().subtract(const Duration(minutes: 10));
 
-      state = [
-        ChatMessage(
-          id: apiMessages[0].id,
-          message: apiMessages[0].message,
-          senderName: apiMessages[0].senderName,
-          type: MessageType.receiver,
-          timestamp: baseTime,
-        ),
-      ];
+      List<ChatMessage> loaded = [];
 
-      for (int i = 1; i < 5; i++) {
-        addMessage(
-          ChatMessage.sender(
-            message: senderMessages[random.nextInt(senderMessages.length)],
-          ),
-        );
+      for (int i = 0; i < 5; i++) {
+        // Sender message
+        final senderMsg = ChatMessage.sender(
+          message: senderMessages[random.nextInt(senderMessages.length)],
+        ).copyWith(timestamp: baseTime.add(Duration(minutes: i * 2)));
+        loaded.add(senderMsg);
 
+        // Receiver message
         final receiverMsg = apiMessages[i % apiMessages.length];
-        addMessage(
+        loaded.add(
           ChatMessage(
             id: receiverMsg.id,
             message: receiverMsg.message,
             senderName: receiverMsg.senderName,
             type: MessageType.receiver,
-            timestamp: baseTime.add(Duration(minutes: i * 2)),
+            timestamp: baseTime.add(Duration(minutes: i * 2 + 1)),
           ),
         );
       }
+
+      state = loaded;
     } catch (_) {}
   }
 
