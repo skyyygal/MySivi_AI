@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_sivi_ai/core/constants.dart';
 
 class MessageText extends StatelessWidget {
   final String message;
@@ -34,7 +35,7 @@ class MessageText extends StatelessWidget {
             '$word ',
             style: TextStyle(
               fontSize: 16,
-              color: isSender ? Colors.white : Colors.black,
+              color: isSender ? whiteColor : blackColor,
             ),
           ),
         );

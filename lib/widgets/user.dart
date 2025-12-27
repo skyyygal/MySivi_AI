@@ -1,31 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:my_sivi_ai/controllers/user_provider.dart';
+import 'package:my_sivi_ai/core/constants.dart';
 import 'package:my_sivi_ai/core/utils.dart';
-import 'package:my_sivi_ai/models/user_models.dart';
 import 'package:my_sivi_ai/screens/chat_screen.dart';
 import 'package:my_sivi_ai/widgets/avatar.dart';
 
-final bucket = PageStorageBucket();
-
-class UserListWidget extends StatelessWidget {
-  final List<User> users;
-  String getLastSeenTime(DateTime lastSeen) {
-    final difference = DateTime.now().difference(lastSeen);
-    if (difference.inMinutes < 1) return 'Online';
-    if (difference.inHours < 1) return '${difference.inMinutes} mins ago';
-    if (difference.inDays < 1) return '${difference.inHours} hrs ago';
-    return '${difference.inDays} days ago';
-  }
-
-  const UserListWidget({
-    super.key,
-    required this.users,
-    // required this.controller,
-  });
+class UserListWidget extends ConsumerWidget {
+  const UserListWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final users = ref.watch(usersProvider);
     return ListView.builder(
-      // key: key,
       key: PageStorageKey("userList"),
       itemCount: users.length,
       itemBuilder: (context, index) {
@@ -51,7 +38,7 @@ class UserListWidget extends StatelessWidget {
                       color: isOnline ? Colors.green : null,
                       shape: BoxShape.circle,
                       border: isOnline
-                          ? Border.all(color: Colors.white, width: 2)
+                          ? Border.all(color: whiteColor, width: 2)
                           : null,
                     ),
                   ),

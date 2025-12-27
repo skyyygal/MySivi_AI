@@ -1,110 +1,41 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:my_sivi_ai/controllers/message_controller.dart';
+import 'package:my_sivi_ai/core/constants.dart';
 import 'package:my_sivi_ai/core/utils.dart';
 import 'package:my_sivi_ai/models/chat_messages.dart';
 import 'package:my_sivi_ai/models/user_models.dart';
-import 'package:my_sivi_ai/services/chat_service.dart';
 import 'package:my_sivi_ai/services/dictionary_service.dart';
 import 'package:my_sivi_ai/widgets/avatar.dart';
 import 'package:my_sivi_ai/widgets/message_text.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   final User user;
   final String? status;
 
   const ChatScreen({super.key, required this.user, this.status});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
-  List<ChatMessage> messages = [];
-  bool isLoading = true;
-
-  final List<String> senderMessages = [
-    'The project is on track, all tasks are progressing.',
-    'Have you reviewed the latest report?',
-    'Please update me on the project status.',
-    'Can we schedule a meeting for tomorrow?',
-    'Thank you.',
-    'I will follow up on this by end of day.',
-    'Sure',
-
-    ' tomorrow works fine for a meeting.',
-    'I will send you the requested documents shortly.',
-    'You’re welcome!',
-    ' Let me know if you need anything else.',
-  ];
-
+class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    loadChatConversation();
-  }
-
-  Future<void> loadChatConversation() async {
-    final random = Random();
-    messages.clear();
-
-    try {
-      final apiMessages = await ChatService().fetchReceiverMessages();
-      DateTime baseTime = DateTime.now().subtract(const Duration(minutes: 10));
-
-      final firstReceiverMsg = apiMessages[0];
-      messages.add(
-        ChatMessage(
-          id: firstReceiverMsg.id,
-          message: firstReceiverMsg.message,
-          senderName: firstReceiverMsg.senderName,
-          type: MessageType.receiver,
-          timestamp: baseTime,
-        ),
-      );
-
-      for (int i = 1; i < 5; i++) {
-        messages.add(
-          ChatMessage.sender(
-            message: senderMessages[random.nextInt(senderMessages.length)],
-          ),
-        );
-
-        final receiverMsg = apiMessages[i % apiMessages.length];
-        messages.add(
-          ChatMessage(
-            id: receiverMsg.id,
-            message: receiverMsg.message,
-            senderName: receiverMsg.senderName,
-            type: MessageType.receiver,
-            timestamp: baseTime.add(Duration(minutes: i * 2)),
-          ),
-        );
-      }
-
-      setState(() {
-        isLoading = false;
-      });
-    } catch (_) {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  String formatTime(DateTime time) {
-    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final period = time.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $period';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(chatProvider.notifier).loadChatConversation();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final messages = ref.watch(chatProvider);
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: whiteColor,
+        surfaceTintColor: whiteColor,
         title: Padding(
           padding: const EdgeInsets.all(8.0),
           child: ListTile(
@@ -120,7 +51,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       ),
-      body: isLoading
+      body: messages.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               padding: const EdgeInsets.all(12),

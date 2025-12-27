@@ -5,7 +5,7 @@ import 'package:my_sivi_ai/models/chat_messages.dart';
 import 'package:my_sivi_ai/models/user_models.dart';
 
 class ChatService {
-  static const url = 'https://dummyjson.com/comments?limit=10';
+  static const url = 'https://dummyjson.com/comments?limit=15';
 
   Future<List<User>> fetchUsers() async {
     final response = await http.get(Uri.parse(url));
@@ -33,11 +33,5 @@ class ChatService {
     } else {
       throw Exception('Failed to load messages');
     }
-  }
-
-  Future<List<ChatMessage>> fetchReceiverMessagesForUser(int userId) async {
-    final allMessages = await fetchReceiverMessages();
-
-    return allMessages.where((msg) => msg.id % 10 == userId % 10).toList();
   }
 }

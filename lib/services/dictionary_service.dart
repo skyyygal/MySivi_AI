@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 Future<String> fetchMeaning(String word) async {
@@ -10,9 +11,12 @@ Future<String> fetchMeaning(String word) async {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      debugPrint("Data: $data");
       return data[0]['meanings'][0]['definitions'][0]['definition'];
     }
-  } catch (_) {}
+  } catch (_) {
+    throw Exception("Internal error");
+  }
 
   return 'Meaning not available';
 }

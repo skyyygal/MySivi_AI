@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:my_sivi_ai/core/constants.dart';
 
 class Avatar extends StatelessWidget {
-  const Avatar({
-    super.key,
-    // required this.user,
-    required this.gradient,
-    required this.text,
-  });
+  const Avatar({super.key, required this.gradient, required this.text});
 
-  // final User user;
   final Gradient gradient;
   final String text;
 
@@ -20,7 +15,7 @@ class Avatar extends StatelessWidget {
       decoration: BoxDecoration(shape: BoxShape.circle, gradient: gradient),
 
       child: Center(
-        child: Text(text, style: TextStyle(fontSize: 20, color: Colors.white)),
+        child: Text(text, style: TextStyle(fontSize: 20, color: whiteColor)),
       ),
     );
   }

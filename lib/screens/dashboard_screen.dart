@@ -1,42 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:my_sivi_ai/controllers/user_provider.dart';
+import 'package:my_sivi_ai/core/constants.dart';
 import 'package:my_sivi_ai/screens/home_screen.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final index = ref.watch(selectedTabProvider);
+    final navigatorKeys = [
+      GlobalKey<NavigatorState>(),
+      GlobalKey<NavigatorState>(),
+      GlobalKey<NavigatorState>(),
+    ];
 
-class _DashboardScreenState extends State<DashboardScreen> {
-  int index = 0;
-  // int innerIndex = 0;
-  List<Widget> widgetList = [
-    HomeScreen(),
-    Text("Offers", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-    Text(
-      'Settings',
-      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-    ),
-  ];
-  final List<GlobalKey<NavigatorState>> navigatorKeys = [
-    GlobalKey<NavigatorState>(),
-    GlobalKey<NavigatorState>(),
-    GlobalKey<NavigatorState>(),
-  ];
-  Widget buildTab(int tabIndex, Widget child) {
-    return Navigator(
-      key: navigatorKeys[tabIndex],
-      onGenerateRoute: (settings) {
-        return MaterialPageRoute(builder: (_) => child);
-      },
-    );
-  }
+    Widget buildTab(int tabIndex, Widget child) {
+      return Navigator(
+        key: navigatorKeys[tabIndex],
+        onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => child),
+      );
+    }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: whiteColor,
       body: IndexedStack(
         index: index,
         children: [
@@ -47,41 +35,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
+        backgroundColor: whiteColor,
         selectedFontSize: 10,
         unselectedFontSize: 10,
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w700),
-        unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w700),
-
-        onTap: (value) {
-          setState(() {
-            index = value;
-          });
-          print(index);
-        },
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
         currentIndex: index,
         selectedItemColor: Colors.indigoAccent,
-        items: [
+        onTap: (value) {
+          ref.read(selectedTabProvider.notifier).state = value;
+        },
+        items: const [
           BottomNavigationBarItem(
-            icon: Padding(
-              padding: const EdgeInsets.all(1.0),
-              child: Icon(Icons.chat_bubble_outline, size: 20),
-            ),
-
+            icon: Icon(Icons.chat_bubble_outline, size: 20),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Padding(
-              padding: const EdgeInsets.all(1.0),
-              child: Icon(Icons.sell_outlined, size: 20),
-            ),
+            icon: Icon(Icons.sell_outlined, size: 20),
             label: 'Offers',
           ),
           BottomNavigationBarItem(
-            icon: Padding(
-              padding: const EdgeInsets.all(1.0),
-              child: Icon(Icons.settings_outlined, size: 20),
-            ),
+            icon: Icon(Icons.settings_outlined, size: 20),
             label: 'Settings',
           ),
         ],

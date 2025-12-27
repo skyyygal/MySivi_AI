@@ -1,134 +1,40 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:my_sivi_ai/models/chat_messages.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:my_sivi_ai/controllers/chat_history_provider.dart';
+import 'package:my_sivi_ai/controllers/user_provider.dart';
+import 'package:my_sivi_ai/core/constants.dart';
 import 'package:my_sivi_ai/models/user_models.dart';
-import 'package:my_sivi_ai/services/chat_service.dart';
 import 'package:my_sivi_ai/widgets/chat_history.dart';
 import 'package:my_sivi_ai/widgets/user.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
+class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
+  final bucket = PageStorageBucket();
   int index = 0;
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
-
-  List<User> users = [];
-  bool isLoadingUsers = true;
-  List<ChatHistoryItem> chatHistory = [];
-  bool isLoadingHistory = true;
-
-  String? usersError;
-
-  // late final ScrollController usersScrollController;
-  // late final ScrollController chatHistoryScrollController;
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _scrollController;
-    _tabController.addListener(() {
-      if (_tabController.indexIsChanging) return;
-      setState(() {
-        index = _tabController.index;
-      });
+
+    Future.microtask(() {
+      ref.read(usersProvider.notifier).fetchUsers();
     });
-
-    // usersScrollController = ScrollController();
-    // chatHistoryScrollController = ScrollController();
-
-    fetchUsers();
   }
 
   @override
   void dispose() {
     super.dispose();
     _tabController.dispose();
-    _scrollController.dispose();
-  }
-
-  Future<void> fetchUsers() async {
-    try {
-      final fetchedUsers = await ChatService().fetchUsers();
-      setState(() {
-        users = fetchedUsers;
-        isLoadingUsers = false;
-      });
-      generateChatHistory();
-    } catch (e) {
-      setState(() {
-        usersError = 'Failed to load users';
-        isLoadingUsers = false;
-      });
-    }
-  }
-
-  Future<void> generateChatHistory() async {
-    if (users.isEmpty) return;
-
-    setState(() {
-      isLoadingHistory = true;
-    });
-
-    final random = Random();
-    final senderMessages = [
-      'I know what this is!',
-      'Lets do it',
-      'What are you up to?',
-      'Check this out!',
-      'Any updates?',
-      'Okay, I\'ll wait for this',
-    ];
-
-    try {
-      final apiMessages = await ChatService().fetchReceiverMessages();
-      List<ChatHistoryItem> history = [];
-
-      for (var user in users) {
-        final isSender = random.nextBool();
-
-        final lastMsg = isSender
-            ? ChatMessage(
-                id: DateTime.now().millisecondsSinceEpoch,
-                message: senderMessages[random.nextInt(senderMessages.length)],
-                senderName: 'You',
-                type: MessageType.sender,
-                timestamp: DateTime.now().subtract(Duration(minutes: 1 * 2)),
-              )
-            : apiMessages[random.nextInt(apiMessages.length)];
-
-        final time = DateTime.now().subtract(
-          Duration(minutes: random.nextInt(60)),
-        );
-        final unreadCount = random.nextInt(5);
-
-        history.add(
-          ChatHistoryItem(
-            user: user,
-            lastMessage: lastMsg,
-            time: time,
-            unreadCount: unreadCount,
-          ),
-        );
-      }
-
-      setState(() {
-        chatHistory = history;
-        isLoadingHistory = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoadingHistory = false;
-      });
-    }
+    // _scrollController.dispose();
   }
 
   void addNewUser() {
@@ -155,9 +61,8 @@ class _HomeScreenState extends State<HomeScreen>
                     id: DateTime.now().millisecondsSinceEpoch,
                     fullName: name,
                   );
-                  setState(() {
-                    users.add(newUser);
-                  });
+                  ref.read(usersProvider.notifier).addUser(newUser);
+
                   Navigator.pop(context);
                   ScaffoldMessenger.of(
                     context,
@@ -174,15 +79,18 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final users = ref.watch(usersProvider);
+    final chatHistory = ref.watch(chatHistoryProvider);
+
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: whiteColor,
         floatingActionButton: index == 0
             ? FloatingActionButton(
                 shape: CircleBorder(),
                 backgroundColor: Colors.indigoAccent,
                 onPressed: addNewUser,
-                child: const Icon(Icons.add, color: Colors.white),
+                child: const Icon(Icons.add, color: whiteColor),
               )
             : null,
         body: NestedScrollView(
@@ -194,8 +102,8 @@ class _HomeScreenState extends State<HomeScreen>
                 snap: index % 2 == 0 ? true : false,
                 toolbarHeight: 40,
                 automaticallyImplyLeading: false,
-                backgroundColor: Colors.white,
-                surfaceTintColor: Colors.white,
+                backgroundColor: whiteColor,
+                surfaceTintColor: whiteColor,
                 title: Column(
                   children: [
                     Container(
@@ -210,11 +118,11 @@ class _HomeScreenState extends State<HomeScreen>
                         indicatorSize: TabBarIndicatorSize.tab,
                         dividerColor: Colors.transparent,
 
-                        labelColor: Colors.black,
+                        labelColor: blackColor,
                         unselectedLabelColor: Colors.black45,
                         padding: EdgeInsets.all(2),
                         indicator: BoxDecoration(
-                          color: Colors.white,
+                          color: whiteColor,
                           borderRadius: BorderRadius.all(Radius.circular(20)),
                         ),
                         tabs: const [
@@ -229,12 +137,12 @@ class _HomeScreenState extends State<HomeScreen>
             ];
           },
           controller: _scrollController,
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              UserListWidget(users: users),
-              ChatHistoryWidget(chatHistory: chatHistory),
-            ],
+          body: PageStorage(
+            bucket: bucket,
+            child: TabBarView(
+              controller: _tabController,
+              children: [UserListWidget(), ChatHistoryWidget()],
+            ),
           ),
         ),
       ),
@@ -254,11 +162,11 @@ class _HomeScreenState extends State<HomeScreen>
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
 
-        labelColor: Colors.black,
-        unselectedLabelColor: Colors.black45,
+        labelColor: blackColor,
+        unselectedLabelColor: blackColor,
         padding: EdgeInsets.all(2),
         indicator: BoxDecoration(
-          color: Colors.white,
+          color: whiteColor,
           borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
         tabs: const [
